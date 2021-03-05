@@ -1,5 +1,5 @@
 FROM debian:stretch
-MAINTAINER Getty Images "https://github.com/gettyimages"
+MAINTAINER pyspark's
 
 RUN apt-get update \
  && apt-get install -y locales \
@@ -59,6 +59,18 @@ RUN curl -sL --retry 3 \
   | tar x -C /usr/ \
  && mv /usr/$SPARK_PACKAGE $SPARK_HOME \
  && chown -R root:root $SPARK_HOME
+# install system dependencies
+RUN apt-get update \
+    && apt-get -y install gcc make \
+    && rm -rf /var/lib/apt/lists/*
 
+# install dependencies
+RUN pip install --no-cache-dir --upgrade pip
 WORKDIR $SPARK_HOME
+
+# copy requirements.txt
+COPY ./requirements.txt /src/app/requirements.txt
+# copy requirements2.txt
+COPY ./requirements2.txt /src/app/requirements.txt
+RUN python model.py
 CMD ["bin/spark-class", "org.apache.spark.deploy.master.Master"]
